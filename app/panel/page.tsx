@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function Panel() {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -19,6 +19,30 @@ export default function Panel() {
 
     // Order/Table States
     const [adminData, setAdminData] = useState<any>(null);
+    const initialLoadRef = useRef(true);
+    const prevOrdersRef = useRef<Set<string>>(new Set());
+
+    useEffect(() => {
+        if (adminData && adminData.pendingOrders) {
+            const currentPending = adminData.pendingOrders.filter((o:any) => o.status === 'bekliyor');
+            
+            if (!initialLoadRef.current) {
+                const hasNewOrder = currentPending.some((o:any) => !prevOrdersRef.current.has(o.id));
+                if (hasNewOrder) {
+                    const vol = parseFloat(localStorage.getItem('volume') || '1');
+                    if (vol > 0) {
+                        const audio = new Audio('/notification.mp3');
+                        audio.volume = vol;
+                        audio.play().catch(e => console.log('Audio play error:', e));
+                    }
+                }
+            } else {
+                initialLoadRef.current = false;
+            }
+            
+            prevOrdersRef.current = new Set(currentPending.map((o:any) => o.id));
+        }
+    }, [adminData]);
 
     const checkAuth = async () => {
         try {
@@ -62,26 +86,7 @@ export default function Panel() {
     const fetchAdminData = () => {
         fetch('/api/admin')
             .then(res => res.json())
-            .then(data => {
-                setAdminData((prevData: any) => {
-                    if (prevData && data.pendingOrders) {
-                        const prevPending = prevData.pendingOrders.filter((o:any) => o.status === 'bekliyor');
-                        const newPending = data.pendingOrders.filter((o:any) => o.status === 'bekliyor');
-                        const prevIds = new Set(prevPending.map((o:any) => o.id));
-                        const hasNewOrder = newPending.some((o:any) => !prevIds.has(o.id));
-                        
-                        if (hasNewOrder) {
-                            const vol = parseFloat(localStorage.getItem('volume') || '1');
-                            if (vol > 0) {
-                                const audio = new Audio('/notification.ogg');
-                                audio.volume = vol;
-                                audio.play().catch(e => console.log('Audio play error:', e));
-                            }
-                        }
-                    }
-                    return data;
-                });
-            });
+            .then(data => setAdminData(data));
     };
 
     useEffect(() => {
@@ -258,7 +263,7 @@ export default function Panel() {
                                     setVolume(v);
                                     localStorage.setItem('volume', v.toString());
                                     if (v > 0) {
-                                        const audio = new Audio('/notification.ogg');
+                                        const audio = new Audio('/notification.mp3');
                                         audio.volume = v;
                                         audio.play().catch(()=>{});
                                     }

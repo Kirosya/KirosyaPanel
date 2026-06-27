@@ -94,6 +94,17 @@ export default function QRMenu() {
         });
     };
 
+    const removeFromCart = (item: any) => {
+        setCart(prev => {
+            const existing = prev.find(i => i.name === item.name);
+            if (!existing) return prev;
+            if (existing.qty === 1) {
+                return prev.filter(i => i.name !== item.name);
+            }
+            return prev.map(i => i.name === item.name ? { ...i, qty: i.qty - 1 } : i);
+        });
+    };
+
     const placeOrder = async () => {
         if (cart.length === 0 || !sessionId || !tableId) return;
         setOrdering(true);
@@ -248,14 +259,36 @@ export default function QRMenu() {
                                         {item.price && (
                                             <div className="flex flex-col items-end gap-2">
                                                 <div className="font-black text-brand-red text-lg whitespace-nowrap">{item.price} TL</div>
-                                                {tableId && (
-                                                    <button 
-                                                        onClick={() => addToCart(item)}
-                                                        className="bg-brand-red text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm active:scale-95 transition-transform"
-                                                    >
-                                                        <i className="fa-solid fa-plus mr-1"></i> Ekle
-                                                    </button>
-                                                )}
+                                                {tableId && (() => {
+                                                    const cartItem = cart.find(c => c.name === item.name);
+                                                    if (cartItem) {
+                                                        return (
+                                                            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1 shadow-inner">
+                                                                <button 
+                                                                    onClick={() => removeFromCart(item)}
+                                                                    className="w-8 h-8 bg-white text-brand-red rounded shadow-sm flex items-center justify-center font-bold active:scale-95"
+                                                                >
+                                                                    <i className="fa-solid fa-minus"></i>
+                                                                </button>
+                                                                <span className="font-black text-gray-800 min-w-[1.5rem] text-center">{cartItem.qty}</span>
+                                                                <button 
+                                                                    onClick={() => addToCart(item)}
+                                                                    className="w-8 h-8 bg-brand-red text-white rounded shadow-sm flex items-center justify-center font-bold active:scale-95"
+                                                                >
+                                                                    <i className="fa-solid fa-plus"></i>
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return (
+                                                        <button 
+                                                            onClick={() => addToCart(item)}
+                                                            className="bg-brand-red text-white text-sm font-bold px-4 py-2 rounded-lg shadow-sm active:scale-95 transition-transform flex items-center gap-2"
+                                                        >
+                                                            <i className="fa-solid fa-plus"></i> Ekle
+                                                        </button>
+                                                    );
+                                                })()}
                                             </div>
                                         )}
                                     </div>
@@ -299,8 +332,10 @@ export default function QRMenu() {
                             {cart.map((c, i) => (
                                 <div key={i} className="flex justify-between items-center border-b pb-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-brand-light text-brand-red font-bold rounded-lg flex items-center justify-center text-sm border border-brand-red/20">
-                                            {c.qty}x
+                                        <div className="flex items-center gap-1.5 bg-gray-100 p-1 rounded-lg">
+                                            <button onClick={() => removeFromCart(c)} className="w-6 h-6 bg-white text-brand-red rounded shadow-sm flex items-center justify-center font-bold active:scale-95"><i className="fa-solid fa-minus text-xs"></i></button>
+                                            <span className="font-black text-gray-800 w-5 text-center text-sm">{c.qty}</span>
+                                            <button onClick={() => addToCart(c)} className="w-6 h-6 bg-brand-red text-white rounded shadow-sm flex items-center justify-center font-bold active:scale-95"><i className="fa-solid fa-plus text-xs"></i></button>
                                         </div>
                                         <span className="font-bold text-gray-800">{c.name}</span>
                                     </div>

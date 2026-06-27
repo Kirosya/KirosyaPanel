@@ -7,6 +7,7 @@ export default function Panel() {
     const [password, setPassword] = useState('');
     const [loginError, setLoginError] = useState('');
     const [darkMode, setDarkMode] = useState(false);
+    const [volume, setVolume] = useState(1);
 
     const [activeTab, setActiveTab] = useState<'menu' | 'orders'>('orders');
     
@@ -61,7 +62,26 @@ export default function Panel() {
     const fetchAdminData = () => {
         fetch('/api/admin')
             .then(res => res.json())
-            .then(data => setAdminData(data));
+            .then(data => {
+                setAdminData((prevData: any) => {
+                    if (prevData && data.pendingOrders) {
+                        const prevPending = prevData.pendingOrders.filter((o:any) => o.status === 'bekliyor');
+                        const newPending = data.pendingOrders.filter((o:any) => o.status === 'bekliyor');
+                        const prevIds = new Set(prevPending.map((o:any) => o.id));
+                        const hasNewOrder = newPending.some((o:any) => !prevIds.has(o.id));
+                        
+                        if (hasNewOrder) {
+                            const vol = parseFloat(localStorage.getItem('volume') || '1');
+                            if (vol > 0) {
+                                const audio = new Audio('/notification.ogg');
+                                audio.volume = vol;
+                                audio.play().catch(e => console.log('Audio play error:', e));
+                            }
+                        }
+                    }
+                    return data;
+                });
+            });
     };
 
     useEffect(() => {
@@ -77,6 +97,9 @@ export default function Panel() {
             // Check saved theme
             if (localStorage.getItem('theme') === 'dark') {
                 setDarkMode(true);
+            }
+            if (localStorage.getItem('volume') !== null) {
+                setVolume(parseFloat(localStorage.getItem('volume')!));
             }
             return () => clearInterval(interval);
         }
@@ -214,7 +237,26 @@ export default function Panel() {
                                 Menü Fiyatları
                             </button>
                         </div>
-                        <button onClick={toggleDarkMode} className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-800 text-white hover:bg-gray-700 transition-colors dark-toggle">
+                        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2 panel-tabs h-10 shadow-inner" title="Sipariş Bildirim Sesi">
+                            <i className={`fa-solid ${volume === 0 ? 'fa-volume-xmark' : 'fa-volume-high'} text-gray-500 w-4 text-center`}></i>
+                            <input 
+                                type="range" 
+                                min="0" max="1" step="0.1" 
+                                value={volume} 
+                                onChange={(e) => {
+                                    const v = parseFloat(e.target.value);
+                                    setVolume(v);
+                                    localStorage.setItem('volume', v.toString());
+                                    if (v > 0) {
+                                        const audio = new Audio('/notification.ogg');
+                                        audio.volume = v;
+                                        audio.play().catch(()=>{});
+                                    }
+                                }}
+                                className="w-20 sm:w-24 accent-brand-red cursor-pointer"
+                            />
+                        </div>
+                        <button onClick={toggleDarkMode} className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-800 text-white hover:bg-gray-700 transition-colors dark-toggle shadow-sm">
                             <i className={`fa-solid ${darkMode ? 'fa-sun text-yellow-400' : 'fa-moon'}`}></i>
                         </button>
                     </div>

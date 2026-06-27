@@ -16,6 +16,30 @@ export async function POST(request: Request) {
             for(let i=1; i<=10; i++) db.tables[i.toString()] = { sessionId: null, orders: [] };
         }
 
+        if (!tableId) {
+            const targetSession = urlSessionId || sessionId;
+            if (!targetSession) {
+                return NextResponse.json({ error: 'Geçersiz oturum.' }, { status: 400 });
+            }
+            let foundTableId = null;
+            for (const tId in db.tables) {
+                if (db.tables[tId].sessionId === targetSession) {
+                    foundTableId = tId;
+                    break;
+                }
+            }
+            if (foundTableId) {
+                return NextResponse.json({ 
+                    success: true, 
+                    tableId: foundTableId,
+                    joinedSessionId: targetSession, 
+                    orders: db.tables[foundTableId].orders 
+                });
+            } else {
+                return NextResponse.json({ error: 'Bu oturum kapatılmış veya geçersiz.' }, { status: 404 });
+            }
+        }
+
         if (!db.tables[tableId]) {
             return NextResponse.json({ error: 'Masa bulunamadı' }, { status: 404 });
         }
@@ -26,12 +50,12 @@ export async function POST(request: Request) {
             db.tables[tableId].sessionId = newSession;
             db.tables[tableId].orders = [];
             await redis.set('aspava:tables', db);
-            return NextResponse.json({ success: true, joinedSessionId: newSession, orders: [] });
+            return NextResponse.json({ success: true, tableId, joinedSessionId: newSession, orders: [] });
         }
 
         // Eğer masa doluysa ve gelen kişinin çerezi (cookie) eşleşiyorsa VEYA url'deki (s) parametresi eşleşiyorsa:
         if (db.tables[tableId].sessionId === sessionId || (urlSessionId && db.tables[tableId].sessionId === urlSessionId)) {
-            return NextResponse.json({ success: true, joinedSessionId: db.tables[tableId].sessionId, orders: db.tables[tableId].orders });
+            return NextResponse.json({ success: true, tableId, joinedSessionId: db.tables[tableId].sessionId, orders: db.tables[tableId].orders });
         }
 
         // Eğer masa doluysa ama gelen kişinin çerezi farklıysa/yoksa (troll veya başka bir telefon):

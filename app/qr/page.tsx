@@ -37,9 +37,15 @@ export default function QRMenu() {
                 document.cookie = `aspava_session=${data.joinedSessionId}; max-age=${12 * 60 * 60}; path=/`;
                 setSessionId(data.joinedSessionId);
                 
-                // Update URL to include s=joinedSessionId if not present
+                // Gelen veride farklı bir masa numarası varsa (örn. masa taşındıysa) onu kullan
+                if (data.tableId) {
+                    setTableId(data.tableId);
+                }
+                
+                // Update URL to /qr?s=joinedSessionId (Masa querysini kaldırıyoruz)
                 const currentUrl = new URL(window.location.href);
-                if (currentUrl.searchParams.get('s') !== data.joinedSessionId) {
+                if (currentUrl.searchParams.has('masa') || currentUrl.searchParams.get('s') !== data.joinedSessionId) {
+                    currentUrl.searchParams.delete('masa');
                     currentUrl.searchParams.set('s', data.joinedSessionId);
                     window.history.replaceState({}, '', currentUrl.toString());
                 }
@@ -64,12 +70,12 @@ export default function QRMenu() {
         const t = searchParams.get('masa');
         const s = searchParams.get('s');
 
-        if (!t) {
+        if (!t && !s) {
             // Sadece menüyü görüntüleme modu
             return;
         }
 
-        setTableId(t);
+        if (t) setTableId(t);
 
         // Get session from cookie if it exists
         const getCookie = (name: string) => {
@@ -80,14 +86,15 @@ export default function QRMenu() {
         };
         const localSession = getCookie('aspava_session');
 
-        // İlk yükleme
-        checkTableSession(t, localSession, s);
+        // İlk yükleme (masa varsa masa id'si ile, yoksa null göndererek sadece session id ile kontrol et)
+        checkTableSession(t || null, localSession, s);
         
         // Polling (Her 5 saniyede bir sipariş durumunu güncelle)
         const interval = setInterval(() => {
             const currentSession = getCookie('aspava_session');
             const currentS = new URLSearchParams(window.location.search).get('s');
-            checkTableSession(t, currentSession, currentS);
+            // Polling sırasında masa ID göndermiyoruz ki backend sadece session ID'den masayı bulsun (masa taşıma durumu için)
+            checkTableSession(null, currentSession, currentS);
         }, 5000);
         
         return () => clearInterval(interval);

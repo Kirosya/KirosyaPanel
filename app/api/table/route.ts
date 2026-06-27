@@ -8,7 +8,7 @@ function generateUUID() {
 
 export async function POST(request: Request) {
     try {
-        const { tableId, sessionId } = await request.json();
+        const { tableId, sessionId, urlSessionId } = await request.json();
         let db: any = await redis.get('aspava:tables');
         
         if (!db || !db.tables) {
@@ -29,13 +29,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: true, joinedSessionId: newSession, orders: [] });
         }
 
-        // Eğer masa doluysa ve gelen kişinin çerezi (cookie) eşleşiyorsa (masayı açan kişiyse):
-        if (db.tables[tableId].sessionId === sessionId) {
+        // Eğer masa doluysa ve gelen kişinin çerezi (cookie) eşleşiyorsa VEYA url'deki (s) parametresi eşleşiyorsa:
+        if (db.tables[tableId].sessionId === sessionId || (urlSessionId && db.tables[tableId].sessionId === urlSessionId)) {
             return NextResponse.json({ success: true, joinedSessionId: db.tables[tableId].sessionId, orders: db.tables[tableId].orders });
         }
 
         // Eğer masa doluysa ama gelen kişinin çerezi farklıysa/yoksa (troll veya başka bir telefon):
-        return NextResponse.json({ error: 'Bu masa şu an dolu. Lütfen siparişi masayı ilk okutan telefondan veriniz.' }, { status: 403 });
+        return NextResponse.json({ error: 'Bu masa şu an dolu. Katılmak için masayı ilk açan kişinin linkini kullanın.' }, { status: 403 });
 
     } catch (error) {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });

@@ -22,11 +22,11 @@ export default function QRMenu() {
     const [myOrders, setMyOrders] = useState<any[]>([]);
     
     // API'den durumu kontrol eden fonksiyon
-    const checkTableSession = (tId: string, sId: string | null) => {
+    const checkTableSession = (tId: string, sId: string | null, urlSession: string | null = null) => {
         fetch('/api/table', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tableId: tId, sessionId: sId })
+            body: JSON.stringify({ tableId: tId, sessionId: sId, urlSessionId: urlSession })
         })
         .then(res => res.json())
         .then(data => {
@@ -36,6 +36,14 @@ export default function QRMenu() {
                 // Set cookie for 12 hours
                 document.cookie = `aspava_session=${data.joinedSessionId}; max-age=${12 * 60 * 60}; path=/`;
                 setSessionId(data.joinedSessionId);
+                
+                // Update URL to include s=joinedSessionId if not present
+                const currentUrl = new URL(window.location.href);
+                if (currentUrl.searchParams.get('s') !== data.joinedSessionId) {
+                    currentUrl.searchParams.set('s', data.joinedSessionId);
+                    window.history.replaceState({}, '', currentUrl.toString());
+                }
+
                 if (data.orders) {
                     setMyOrders(data.orders);
                 }
@@ -54,6 +62,7 @@ export default function QRMenu() {
         // Validate table session
         const searchParams = new URLSearchParams(window.location.search);
         const t = searchParams.get('masa');
+        const s = searchParams.get('s');
 
         if (!t) {
             // Sadece menüyü görüntüleme modu
@@ -72,12 +81,13 @@ export default function QRMenu() {
         const localSession = getCookie('aspava_session');
 
         // İlk yükleme
-        checkTableSession(t, localSession);
+        checkTableSession(t, localSession, s);
         
         // Polling (Her 5 saniyede bir sipariş durumunu güncelle)
         const interval = setInterval(() => {
             const currentSession = getCookie('aspava_session');
-            checkTableSession(t, currentSession);
+            const currentS = new URLSearchParams(window.location.search).get('s');
+            checkTableSession(t, currentSession, currentS);
         }, 5000);
         
         return () => clearInterval(interval);

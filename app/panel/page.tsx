@@ -6,6 +6,7 @@ export default function Panel() {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [password, setPassword] = useState('');
     const [loginError, setLoginError] = useState('');
+    const [darkMode, setDarkMode] = useState(false);
 
     const [activeTab, setActiveTab] = useState<'menu' | 'orders'>('orders');
     
@@ -72,9 +73,20 @@ export default function Panel() {
             fetchMenu();
             fetchAdminData();
             const interval = setInterval(fetchAdminData, 5000); // Poll orders every 5s
+            
+            // Check saved theme
+            if (localStorage.getItem('theme') === 'dark') {
+                setDarkMode(true);
+            }
             return () => clearInterval(interval);
         }
     }, [isAuthenticated]);
+
+    const toggleDarkMode = () => {
+        const newMode = !darkMode;
+        setDarkMode(newMode);
+        localStorage.setItem('theme', newMode ? 'dark' : 'light');
+    };
 
     const handlePriceChange = (categoryKey: string, itemIndex: number, newPrice: string) => {
         const newData = { ...menuData };
@@ -174,23 +186,28 @@ export default function Panel() {
     if (menuLoading || !adminData) return <div className="p-10 text-center text-xl flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-red"></div></div>;
 
     return (
-        <div className="min-h-screen bg-gray-50 py-10 px-4">
-            <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+        <div className={`min-h-screen py-10 px-4 transition-colors duration-300 ${darkMode ? 'midnight-dark' : 'bg-gray-50'}`}>
+            <div className="max-w-5xl mx-auto panel-container rounded-2xl shadow-sm border p-6 md:p-8 transition-colors duration-300">
                 
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-8 border-b pb-4 gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-8 border-b pb-4 gap-4 panel-header">
                     <h1 className="text-3xl sm:text-4xl font-logo text-brand-red tracking-wide" style={{ textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 2px 2px 0 #000', letterSpacing: '1px' }}>SB Aspava Panel</h1>
-                    <div className="flex bg-gray-100 p-1 rounded-lg">
-                        <button 
-                            onClick={() => setActiveTab('orders')}
-                            className={`px-4 py-2 font-bold rounded-md transition-colors ${activeTab === 'orders' ? 'bg-white shadow text-brand-red' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            Masalar & Siparişler
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab('menu')}
-                            className={`px-4 py-2 font-bold rounded-md transition-colors ${activeTab === 'menu' ? 'bg-white shadow text-brand-red' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            Menü Fiyatları
+                    <div className="flex gap-4 items-center flex-wrap justify-center">
+                        <div className="flex bg-gray-100 p-1 rounded-lg panel-tabs">
+                            <button 
+                                onClick={() => setActiveTab('orders')}
+                                className={`px-4 py-2 font-bold rounded-md transition-colors ${activeTab === 'orders' ? 'bg-white shadow text-brand-red active-tab' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Masalar & Siparişler
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('menu')}
+                                className={`px-4 py-2 font-bold rounded-md transition-colors ${activeTab === 'menu' ? 'bg-white shadow text-brand-red active-tab' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Menü Fiyatları
+                            </button>
+                        </div>
+                        <button onClick={toggleDarkMode} className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-800 text-white hover:bg-gray-700 transition-colors dark-toggle">
+                            <i className={`fa-solid ${darkMode ? 'fa-sun text-yellow-400' : 'fa-moon'}`}></i>
                         </button>
                     </div>
                 </div>
@@ -347,6 +364,26 @@ export default function Panel() {
             <style dangerouslySetInnerHTML={{__html: `
                 .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                
+                /* Midnight Blue Dark Mode */
+                .midnight-dark { background-color: #0b1120 !important; color: #f8fafc !important; }
+                .midnight-dark .panel-container { background-color: #0f172a !important; border-color: #1e293b !important; }
+                .midnight-dark .bg-white, .midnight-dark .bg-gray-50, .midnight-dark .bg-gray-100 { background-color: #1e293b !important; border-color: #334155 !important; color: #e2e8f0 !important; }
+                .midnight-dark input { background-color: #0f172a !important; color: #f8fafc !important; border-color: #334155 !important; }
+                .midnight-dark input::placeholder { color: #64748b !important; }
+                .midnight-dark h1, .midnight-dark h2, .midnight-dark h3, .midnight-dark .text-gray-900, .midnight-dark .text-gray-800 { color: #f8fafc !important; }
+                .midnight-dark .bg-gray-200, .midnight-dark .panel-tabs { background-color: #0b1120 !important; color: #94a3b8 !important; }
+                .midnight-dark .active-tab { background-color: #1e293b !important; color: #f87171 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important; }
+                .midnight-dark .border-gray-200, .midnight-dark .border-gray-100, .midnight-dark .panel-header { border-color: #334155 !important; }
+                .midnight-dark .text-gray-500, .midnight-dark .text-gray-400 { color: #94a3b8 !important; }
+                .midnight-dark .text-gray-700 { color: #cbd5e1 !important; }
+                .midnight-dark .bg-orange-50 { background-color: #431407 !important; border-color: #7c2d12 !important; color: #fed7aa !important; }
+                .midnight-dark .text-orange-800, .midnight-dark .text-orange-600 { color: #fdba74 !important; }
+                .midnight-dark .bg-green-50 { background-color: #064e3b !important; border-color: #065f46 !important; }
+                .midnight-dark .text-green-700 { color: #6ee7b7 !important; }
+                .midnight-dark .bg-green-100 { background-color: #047857 !important; color: #a7f3d0 !important; }
+                .midnight-dark .border-green-200, .midnight-dark .border-green-100 { border-color: #065f46 !important; }
+                .midnight-dark .dark-toggle { background-color: #1e293b !important; border: 1px solid #334155; }
             `}} />
         </div>
     );

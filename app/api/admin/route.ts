@@ -52,7 +52,6 @@ export async function POST(request: Request) {
                 const to = db.tables[tId].orders.find((o: any) => o.id === orderId);
                 if (to) to.status = 'iptal';
             }
-            }
             db.pendingOrders = db.pendingOrders.filter((o: any) => o.id !== orderId);
         } else if (action === 'update_table_order' && tableId && orderId && status) {
             if (db.tables[tableId]) {

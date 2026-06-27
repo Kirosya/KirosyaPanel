@@ -19,8 +19,25 @@ export default function Panel() {
     const [message, setMessage] = useState('');
 
     const [adminData, setAdminData] = useState<any>(null);
+    const audioUnlockedRef = useRef(false);
+
+    const unlockAudio = () => {
+        if (audioUnlockedRef.current) return;
+        const el = document.getElementById('notificationSound') as HTMLAudioElement;
+        if (el) {
+            el.volume = 0;
+            el.play().then(() => {
+                el.pause();
+                el.currentTime = 0;
+                audioUnlockedRef.current = true;
+            }).catch(()=>{});
+        }
+    };
 
     useEffect(() => {
+        // Herhangi bir tıklamada sesi unlock et
+        document.addEventListener('click', unlockAudio, { once: true });
+        
         if (adminData && adminData.pendingOrders) {
             // Sadece başlık bilgisini güncelle (opsiyonel)
             const pendingCount = adminData.pendingOrders.filter((o:any) => o.status === 'bekliyor').length;
@@ -96,9 +113,12 @@ export default function Panel() {
                 // Sesi çal
                 const vol = parseFloat(localStorage.getItem('volume') || '1');
                 if (vol > 0) {
-                    const audio = new Audio('/notification.mp3');
-                    audio.volume = vol;
-                    audio.play().catch(()=>{});
+                    const el = document.getElementById('notificationSound') as HTMLAudioElement;
+                    if (el) {
+                        el.volume = vol;
+                        el.currentTime = 0;
+                        el.play().catch(e => console.error("Pusher Audio Error:", e));
+                    }
                 }
                 // Verileri yenile
                 fetchAdminData();
@@ -271,9 +291,12 @@ export default function Panel() {
                                     setVolume(v);
                                     localStorage.setItem('volume', v.toString());
                                     if (v > 0) {
-                                        const audio = new Audio('/notification.mp3');
-                                        audio.volume = v;
-                                        audio.play().catch(()=>{});
+                                        const el = document.getElementById('notificationSound') as HTMLAudioElement;
+                                        if (el) {
+                                            el.volume = v;
+                                            el.currentTime = 0;
+                                            el.play().catch(()=>{});
+                                        }
                                     }
                                 }}
                                 className="w-20 sm:w-24 accent-brand-red cursor-pointer"
@@ -462,6 +485,9 @@ export default function Panel() {
                     </div>
                 )}
             </div>
+            
+            <audio id="notificationSound" src="/notification.mp3" preload="auto"></audio>
+            
             <style dangerouslySetInnerHTML={{__html: `
                 .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

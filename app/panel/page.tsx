@@ -376,9 +376,9 @@ export default function Panel() {
                                                                     handleAction('move_table', { fromTableId: tableId, toTableId: target });
                                                                 }
                                                             }}
-                                                            className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                                                            className="bg-blue-600 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
                                                         >
-                                                            Masayı Taşı
+                                                            <i className="fa-solid fa-arrow-right-arrow-left"></i> Taşı
                                                         </button>
                                                         <button 
                                                             onClick={() => { if(confirm(`Masa ${tableId} adisyonunu kapatmak istediğine emin misin?`)) handleAction('close_table', { tableId }) }}

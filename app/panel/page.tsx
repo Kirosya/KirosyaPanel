@@ -328,8 +328,8 @@ export default function Panel() {
                                             {isActive && (
                                                 <>
                                                     <div className="flex justify-between items-center mb-2">
-                                                        <div className="text-xs font-mono text-gray-400 bg-gray-100 p-1.5 rounded inline-block truncate max-w-[60%]">
-                                                            Oturum: {table.sessionId}
+                                                        <div className="text-[12px] font-mono text-gray-400 rounded inline-block">
+                                                            {table.sessionId}
                                                         </div>
                                                         <div className="font-black text-brand-red bg-red-50 px-2 py-1 rounded">
                                                             Toplam: ₺{table.orders.reduce((t: number, o: any) => o.status === 'iptal' ? t : t + o.items.reduce((s: number, i: any) => s + (i.price || 0) * i.qty, 0), 0).toFixed(2)}

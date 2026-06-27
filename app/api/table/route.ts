@@ -8,7 +8,7 @@ function generateUUID() {
 
 export async function POST(request: Request) {
     try {
-        const { tableId, sessionId, urlSessionId } = await request.json();
+        const { tableId, sessionId, urlSessionId, locationVerified } = await request.json();
         let db: any = await redis.get('aspava:tables');
         
         if (!db || !db.tables) {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Masa bulunamadı' }, { status: 404 });
         }
 
-        // Eğer masa boşsa: Daima sunucuda yeni bir UUID üret (eski çerezi kullanma)
+        // Eğer masa boşsa: İlk giren kişi, konum gerekmez
         if (!db.tables[tableId].sessionId) {
             const newSession = generateUUID();
             db.tables[tableId].sessionId = newSession;
@@ -54,12 +54,19 @@ export async function POST(request: Request) {
         }
 
         // Eğer masa doluysa ve gelen kişinin çerezi (cookie) eşleşiyorsa VEYA url'deki (s) parametresi eşleşiyorsa:
+        // Konum gerekmez, zaten içeride
         if (db.tables[tableId].sessionId === sessionId || (urlSessionId && db.tables[tableId].sessionId === urlSessionId)) {
             return NextResponse.json({ success: true, tableId, joinedSessionId: db.tables[tableId].sessionId, orders: db.tables[tableId].orders });
         }
 
-        // Eğer masa doluysa ama gelen kişinin çerezi farklıysa/yoksa (troll veya başka bir telefon):
-        return NextResponse.json({ error: 'Bu masa şu an dolu. Katılmak için masayı ilk açan kişinin linkini kullanın.' }, { status: 403 });
+        // Eğer masa doluysa ama gelen kişinin çerezi farklıysa/yoksa (Masaya sonradan dahil olan kişi)
+        if (locationVerified) {
+            // Konum doğrulandıysa girişine izin ver
+            return NextResponse.json({ success: true, tableId, joinedSessionId: db.tables[tableId].sessionId, orders: db.tables[tableId].orders });
+        } else {
+            // Konum doğrulanmadıysa, frontend'den konum iste
+            return NextResponse.json({ requireLocation: true });
+        }
 
     } catch (error) {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });

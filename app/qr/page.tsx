@@ -21,7 +21,7 @@ export default function QRMenu() {
     const [ordering, setOrdering] = useState(false);
     const [myOrders, setMyOrders] = useState<any[]>([]);
     
-    const [locationStatus, setLocationStatus] = useState<'checking' | 'allowed' | 'denied' | 'too_far'>('checking');
+    const [locationStatus, setLocationStatus] = useState<'allowed' | 'checking' | 'denied' | 'too_far'>('allowed');
     const [distanceStr, setDistanceStr] = useState<string>('');
 
     const RESTAURANT_LAT = 39.8291886;
@@ -42,17 +42,41 @@ export default function QRMenu() {
     };
     
     // API'den durumu kontrol eden fonksiyon
-    const checkTableSession = (tId: string, sId: string | null, urlSession: string | null = null) => {
+    const checkTableSession = (tId: string | null, sId: string | null, urlSession: string | null = null, locationVerified: boolean = false) => {
         fetch('/api/table', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tableId: tId, sessionId: sId, urlSessionId: urlSession })
+            body: JSON.stringify({ tableId: tId, sessionId: sId, urlSessionId: urlSession, locationVerified })
         })
         .then(res => res.json())
         .then(data => {
-            if (data.error) {
+            if (data.requireLocation) {
+                // Masaya sonradan dahil olan biri, konum doğrulaması gerekiyor
+                setLocationStatus('checking');
+                if (!navigator.geolocation) {
+                    setLocationStatus('denied');
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const dist = getDistance(pos.coords.latitude, pos.coords.longitude, RESTAURANT_LAT, RESTAURANT_LON);
+                        setDistanceStr(Math.round(dist).toString() + "m");
+                        if (dist <= MAX_DISTANCE_M) {
+                            // Konum doğrulandı, tekrar giriş dene
+                            checkTableSession(tId, sId, urlSession, true);
+                        } else {
+                            setLocationStatus('too_far');
+                        }
+                    },
+                    (err) => {
+                        setLocationStatus('denied');
+                    },
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                );
+            } else if (data.error) {
                 setErrorMsg(data.error);
             } else if (data.joinedSessionId) {
+                setLocationStatus('allowed');
                 // Set cookie for 12 hours
                 document.cookie = `aspava_session=${data.joinedSessionId}; max-age=${12 * 60 * 60}; path=/`;
                 setSessionId(data.joinedSessionId);
@@ -79,36 +103,11 @@ export default function QRMenu() {
     };
 
     useEffect(() => {
-        // Konum Kontrolü
-        if (!navigator.geolocation) {
-            setLocationStatus('denied');
-            return;
-        }
-
-        // Local ortamda (localhost) test ederken konum hatası almamak için IP/localhost kontrolü yapılabilir,
-        // ama direkt tarayıcı konumunu isteyelim:
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const dist = getDistance(pos.coords.latitude, pos.coords.longitude, RESTAURANT_LAT, RESTAURANT_LON);
-                setDistanceStr(Math.round(dist).toString() + "m");
-                
-                if (dist <= MAX_DISTANCE_M) {
-                    setLocationStatus('allowed');
-                    
-                    // Konum onaylanınca menüyü yükle
-                    fetch('/api/menu')
-                        .then(res => res.json())
-                        .then(data => setMenuData(data))
-                        .catch(err => console.error(err));
-                } else {
-                    setLocationStatus('too_far');
-                }
-            },
-            (err) => {
-                setLocationStatus('denied');
-            },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-        );
+        // İlk yüklemede menüyü çek
+        fetch('/api/menu')
+            .then(res => res.json())
+            .then(data => setMenuData(data))
+            .catch(err => console.error(err));
 
         // Validate table session
         const searchParams = new URLSearchParams(window.location.search);

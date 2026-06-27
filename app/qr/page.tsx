@@ -21,6 +21,26 @@ export default function QRMenu() {
     const [ordering, setOrdering] = useState(false);
     const [myOrders, setMyOrders] = useState<any[]>([]);
     
+    const [locationStatus, setLocationStatus] = useState<'checking' | 'allowed' | 'denied' | 'too_far'>('checking');
+    const [distanceStr, setDistanceStr] = useState<string>('');
+
+    const RESTAURANT_LAT = 39.8291886;
+    const RESTAURANT_LON = 32.6617336;
+    const MAX_DISTANCE_M = 500;
+
+    const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+        const R = 6371e3; // metres
+        const f1 = lat1 * Math.PI/180;
+        const f2 = lat2 * Math.PI/180;
+        const df = (lat2-lat1) * Math.PI/180;
+        const dl = (lon2-lon1) * Math.PI/180;
+        const a = Math.sin(df/2) * Math.sin(df/2) +
+                  Math.cos(f1) * Math.cos(f2) *
+                  Math.sin(dl/2) * Math.sin(dl/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    };
+    
     // API'den durumu kontrol eden fonksiyon
     const checkTableSession = (tId: string, sId: string | null, urlSession: string | null = null) => {
         fetch('/api/table', {
@@ -59,11 +79,36 @@ export default function QRMenu() {
     };
 
     useEffect(() => {
-        // Load menu
-        fetch('/api/menu')
-            .then(res => res.json())
-            .then(data => setMenuData(data))
-            .catch(err => console.error(err));
+        // Konum Kontrolü
+        if (!navigator.geolocation) {
+            setLocationStatus('denied');
+            return;
+        }
+
+        // Local ortamda (localhost) test ederken konum hatası almamak için IP/localhost kontrolü yapılabilir,
+        // ama direkt tarayıcı konumunu isteyelim:
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const dist = getDistance(pos.coords.latitude, pos.coords.longitude, RESTAURANT_LAT, RESTAURANT_LON);
+                setDistanceStr(Math.round(dist).toString() + "m");
+                
+                if (dist <= MAX_DISTANCE_M) {
+                    setLocationStatus('allowed');
+                    
+                    // Konum onaylanınca menüyü yükle
+                    fetch('/api/menu')
+                        .then(res => res.json())
+                        .then(data => setMenuData(data))
+                        .catch(err => console.error(err));
+                } else {
+                    setLocationStatus('too_far');
+                }
+            },
+            (err) => {
+                setLocationStatus('denied');
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
 
         // Validate table session
         const searchParams = new URLSearchParams(window.location.search);
@@ -148,6 +193,45 @@ export default function QRMenu() {
 
     const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
+
+    if (locationStatus === 'checking') {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-brand-light text-center p-6">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-brand-red mb-6"></div>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Konum Doğrulanıyor...</h2>
+                <p className="text-gray-500 mt-2 font-medium max-w-xs mx-auto">Sipariş menüsüne erişmek için lütfen tarayıcınızın konum izni isteğini onaylayın.</p>
+            </div>
+        );
+    }
+
+    if (locationStatus === 'denied') {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-brand-light p-6 text-center">
+                <div className="bg-white p-8 rounded-3xl shadow-xl border-t-4 border-brand-red max-w-sm w-full">
+                    <div className="w-16 h-16 bg-red-100 text-brand-red rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                        <i className="fa-solid fa-location-crosshairs"></i>
+                    </div>
+                    <h2 className="text-2xl font-black text-gray-900 mb-3 tracking-tight">Konum İzni Gerekli</h2>
+                    <p className="text-gray-600 font-medium">Bu menüye sadece restoran içerisinden erişilebilir. Lütfen tarayıcı ayarlarından konum erişimine izin verip sayfayı yenileyin.</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (locationStatus === 'too_far') {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-brand-light p-6 text-center">
+                <div className="bg-white p-8 rounded-3xl shadow-xl border-t-4 border-brand-red max-w-sm w-full">
+                    <div className="w-16 h-16 bg-red-100 text-brand-red rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                        <i className="fa-solid fa-map-location-dot"></i>
+                    </div>
+                    <h2 className="text-2xl font-black text-gray-900 mb-3 tracking-tight">Restorandan Uzaksınız</h2>
+                    <p className="text-gray-600 font-medium">Sisteme giriş yapabilmek için restorana 500 metreden daha yakın olmalısınız.</p>
+                    <div className="mt-4 bg-gray-50 text-gray-500 text-sm font-bold py-2 px-4 rounded-xl">Mevcut Mesafe: {distanceStr}</div>
+                </div>
+            </div>
+        );
+    }
 
     if (errorMsg) {
         return (

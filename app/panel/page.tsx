@@ -283,8 +283,15 @@ export default function Panel() {
                                             </div>
                                             <ul className="mb-4 space-y-1">
                                                 {order.items.map((item:any, idx:number) => (
-                                                    <li key={idx} className="font-bold text-gray-700">{item.qty}x {item.name}</li>
+                                                    <li key={idx} className="font-bold text-gray-700 flex justify-between">
+                                                        <span>{item.qty}x {item.name}</span>
+                                                        <span className="text-gray-500 font-normal text-sm">₺{((item.price || 0) * item.qty).toFixed(2)}</span>
+                                                    </li>
                                                 ))}
+                                                <div className="flex justify-between font-black text-lg pt-2 mt-2 border-t border-gray-200">
+                                                    <span>Toplam:</span>
+                                                    <span className="text-brand-red">₺{order.items.reduce((s:number, i:any) => s + (i.price || 0) * i.qty, 0).toFixed(2)}</span>
+                                                </div>
                                             </ul>
                                             <div className="flex gap-2">
                                                 <button onClick={() => handleAction('approve_order', { orderId: order.id })} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-bold">Mutfağa İlet (Onayla)</button>
@@ -316,8 +323,13 @@ export default function Panel() {
                                             
                                             {isActive && (
                                                 <>
-                                                    <div className="mb-2 text-xs font-mono text-gray-400 bg-gray-100 p-1.5 rounded inline-block truncate max-w-full">
-                                                        Oturum: {table.sessionId}
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <div className="text-xs font-mono text-gray-400 bg-gray-100 p-1.5 rounded inline-block truncate max-w-[60%]">
+                                                            Oturum: {table.sessionId}
+                                                        </div>
+                                                        <div className="font-black text-brand-red bg-red-50 px-2 py-1 rounded">
+                                                            Toplam: ₺{table.orders.reduce((t: number, o: any) => o.status === 'iptal' ? t : t + o.items.reduce((s: number, i: any) => s + (i.price || 0) * i.qty, 0), 0).toFixed(2)}
+                                                        </div>
                                                     </div>
                                                     <div className="space-y-2 mb-4 bg-white p-3 rounded-lg border border-green-100 min-h-[60px]">
                                                         {table.orders.map((order: any, idx: number) => (
@@ -330,7 +342,10 @@ export default function Panel() {
                                                                 </div>
                                                                 <div className={order.status === 'iptal' ? 'opacity-50 line-through' : ''}>
                                                                     {order.items.map((i:any, iIdx:number) => (
-                                                                        <div key={iIdx} className="font-medium text-sm text-gray-800">• {i.qty}x {i.name}</div>
+                                                                        <div key={iIdx} className="font-medium text-sm text-gray-800 flex justify-between">
+                                                                            <span>• {i.qty}x {i.name}</span>
+                                                                            <span className="text-gray-500 font-normal text-xs">₺{((i.price || 0) * i.qty).toFixed(2)}</span>
+                                                                        </div>
                                                                     ))}
                                                                 </div>
                                                                 {order.status !== 'iptal' && (

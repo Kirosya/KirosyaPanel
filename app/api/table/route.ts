@@ -17,9 +17,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Masa bulunamadı' }, { status: 404 });
         }
 
-        // Eğer masa boşsa: İstemciden gelen session'ı veya yeni bir UUID'yi ata
+        // Eğer masa boşsa: Daima sunucuda yeni bir UUID üret (eski çerezi kullanma)
         if (!db.tables[tableId].sessionId) {
-            const newSession = sessionId || generateUUID();
+            const newSession = generateUUID();
             db.tables[tableId].sessionId = newSession;
             db.tables[tableId].orders = [];
             fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));

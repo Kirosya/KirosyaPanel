@@ -1,0 +1,267 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
+const categoryConfig: Record<string, { id: string, color: string, icon: string }> = {
+    kahvalti: { id: 'corbalar', color: 'bg-amber-400', icon: 'fa-mug-hot' },
+    pideler: { id: 'pideler', color: 'bg-orange-500', icon: 'fa-pizza-slice' },
+    kebaplar: { id: 'kebaplar', color: 'bg-brand-red', icon: 'fa-utensils' },
+    kiremitler: { id: 'kiremit', color: 'bg-orange-700', icon: 'fa-bowl-food' },
+    tatlilar: { id: 'tatlilar', color: 'bg-pink-500', icon: 'fa-stroopwafel' },
+    icecekler: { id: 'icecekler', color: 'bg-sky-400', icon: 'fa-bottle-water' }
+};
+
+export default function QRMenu() {
+    const [menuData, setMenuData] = useState<any>(null);
+    const [tableId, setTableId] = useState<string | null>(null);
+    const [sessionId, setSessionId] = useState<string | null>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [cart, setCart] = useState<{name: string, price: number, qty: number}[]>([]);
+    const [cartOpen, setCartOpen] = useState(false);
+    const [ordering, setOrdering] = useState(false);
+
+    useEffect(() => {
+        // Load menu
+        fetch('/api/menu')
+            .then(res => res.json())
+            .then(data => setMenuData(data))
+            .catch(err => console.error(err));
+
+        // Validate table session
+        const searchParams = new URLSearchParams(window.location.search);
+        const t = searchParams.get('masa');
+
+        if (!t) {
+            setErrorMsg("Geçersiz QR kod. Lütfen masanızdaki karekodu okutun.");
+            return;
+        }
+
+        setTableId(t);
+
+        // Get session from cookie if it exists
+        const getCookie = (name: string) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop()?.split(';').shift();
+            return null;
+        };
+        const localSession = getCookie('aspava_session');
+
+        fetch('/api/table', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tableId: t, sessionId: localSession })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                setErrorMsg(data.error);
+            } else if (data.joinedSessionId) {
+                // Set cookie for 12 hours
+                document.cookie = `aspava_session=${data.joinedSessionId}; max-age=${12 * 60 * 60}; path=/`;
+                setSessionId(data.joinedSessionId);
+            }
+        })
+        .catch(() => setErrorMsg("Sunucuya bağlanılamadı."));
+    }, []);
+
+    const addToCart = (item: any) => {
+        if (!item.price) return; // Cannot add items without price
+        setCart(prev => {
+            const existing = prev.find(i => i.name === item.name);
+            if (existing) {
+                return prev.map(i => i.name === item.name ? { ...i, qty: i.qty + 1 } : i);
+            }
+            return [...prev, { name: item.name, price: Number(item.price), qty: 1 }];
+        });
+    };
+
+    const placeOrder = async () => {
+        if (cart.length === 0 || !sessionId || !tableId) return;
+        setOrdering(true);
+        try {
+            const res = await fetch('/api/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tableId, sessionId, items: cart })
+            });
+            const data = await res.json();
+            if (data.error) {
+                alert("Hata: " + data.error);
+            } else {
+                alert("Siparişiniz başarıyla alındı! Afiyet olsun.");
+                setCart([]);
+                setCartOpen(false);
+            }
+        } catch (e) {
+            alert("Bağlantı hatası.");
+        }
+        setOrdering(false);
+    };
+
+    const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
+
+    if (errorMsg) {
+        return (
+            <div className="min-h-screen bg-brand-light flex items-center justify-center p-6 text-center">
+                <div className="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-brand-red">
+                    <i className="fa-solid fa-triangle-exclamation text-4xl text-brand-red mb-4"></i>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">Hata</h2>
+                    <p className="text-gray-600">{errorMsg}</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!menuData || !sessionId) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-brand-light">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-red"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-brand-light text-gray-800 antialiased font-sans min-h-screen pb-32">
+            {/* Header */}
+            <header className="sticky top-0 bg-white border-b-4 border-brand-red z-40 shadow-md">
+                <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+                    <div className="flex-shrink-0 flex items-center">
+                        <div className="text-2xl sm:text-4xl font-logo text-brand-red flex items-center gap-1.5 tracking-wide" style={{ textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 2px 2px 0 #000', letterSpacing: '1px' }}>
+                             SB Aspava
+                        </div>
+                    </div>
+                    <div className="text-sm font-bold bg-gray-100 text-gray-800 px-4 py-2 rounded-full">
+                        Masa {tableId}
+                    </div>
+                </div>
+                
+                {/* Category Navigation */}
+                <nav className="bg-brand-red overflow-x-auto no-scrollbar shadow-inner" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+                    <ul className="flex items-center px-2 py-2 max-w-3xl mx-auto w-max sm:w-full space-x-1">
+                        {Object.keys(menuData).map((key) => {
+                            const config = categoryConfig[key];
+                            if (!config) return null;
+                            return (
+                                <li key={key}>
+                                    <a href={`#${config.id}`} className="px-4 py-2 block text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors whitespace-nowrap">
+                                        {menuData[key].title}
+                                    </a>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </nav>
+            </header>
+
+            {/* Menu Content */}
+            <main className="max-w-3xl mx-auto px-4 py-6 space-y-10">
+                {Object.keys(menuData).map((categoryKey) => {
+                    const category = menuData[categoryKey];
+                    const config = categoryConfig[categoryKey] || { id: categoryKey, color: 'bg-gray-500', icon: 'fa-utensils' };
+                    
+                    return (
+                        <section id={config.id} className="scroll-mt-32" key={categoryKey}>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className={`w-10 h-10 ${config.color} rounded-full flex items-center justify-center text-white shrink-0 shadow-md`}>
+                                    <i className={`fa-solid ${config.icon}`}></i>
+                                </div>
+                                <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">{category.title}</h2>
+                            </div>
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-2">
+                                {category.items.map((item: any, index: number) => (
+                                    <div key={index} className="menu-item p-3 sm:p-4 flex justify-between items-center gap-4 hover:bg-gray-50 transition-colors rounded-xl border-b border-dashed border-gray-200 last:border-b-0">
+                                        <div className="flex-1">
+                                            <h3 className="font-bold text-gray-900 text-lg">{item.name}</h3>
+                                            {item.desc && <p className="text-sm text-gray-500 leading-tight mt-0.5">{item.desc}</p>}
+                                        </div>
+                                        {item.price && (
+                                            <div className="flex flex-col items-end gap-2">
+                                                <div className="font-black text-brand-red text-lg whitespace-nowrap">{item.price} TL</div>
+                                                <button 
+                                                    onClick={() => addToCart(item)}
+                                                    className="bg-brand-red text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm active:scale-95 transition-transform"
+                                                >
+                                                    <i className="fa-solid fa-plus mr-1"></i> Ekle
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    );
+                })}
+            </main>
+
+            {/* Floating Cart Button */}
+            {cartCount > 0 && !cartOpen && (
+                <div className="fixed bottom-6 left-0 right-0 px-4 z-40 flex justify-center animate-bounce-short">
+                    <button 
+                        onClick={() => setCartOpen(true)}
+                        className="bg-brand-red text-white font-bold w-full max-w-md py-4 rounded-2xl shadow-[0_10px_25px_-5px_rgba(185,28,28,0.5)] flex items-center justify-between px-6"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="bg-white text-brand-red w-8 h-8 rounded-full flex items-center justify-center font-black">
+                                {cartCount}
+                            </div>
+                            <span className="text-lg">Sepetim</span>
+                        </div>
+                        <span className="text-xl font-black">{cartTotal} TL</span>
+                    </button>
+                </div>
+            )}
+
+            {/* Cart Modal */}
+            {cartOpen && (
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
+                    <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col animate-slide-up">
+                        <div className="p-5 border-b flex justify-between items-center bg-gray-50">
+                            <h2 className="text-xl font-black text-gray-900">Sipariş Sepeti</h2>
+                            <button onClick={() => setCartOpen(false)} className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-600">
+                                <i className="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                            {cart.map((c, i) => (
+                                <div key={i} className="flex justify-between items-center border-b pb-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-brand-light text-brand-red font-bold rounded-lg flex items-center justify-center text-sm border border-brand-red/20">
+                                            {c.qty}x
+                                        </div>
+                                        <span className="font-bold text-gray-800">{c.name}</span>
+                                    </div>
+                                    <span className="font-bold text-gray-600">{c.price * c.qty} TL</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="p-5 bg-gray-50 border-t">
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="font-bold text-gray-600">Toplam Tutar</span>
+                                <span className="text-2xl font-black text-brand-red">{cartTotal} TL</span>
+                            </div>
+                            <button 
+                                onClick={placeOrder}
+                                disabled={ordering}
+                                className="w-full bg-brand-red text-white font-bold py-4 rounded-xl text-lg shadow-md disabled:opacity-50"
+                            >
+                                {ordering ? 'Sipariş İletiliyor...' : 'Siparişi Onayla'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style dangerouslySetInnerHTML={{__html: `
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
+                .animate-bounce-short { animation: bounceShort 0.5s ease-out 1; }
+                @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+                @keyframes bounceShort { 0% { transform: translateY(20px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+            `}} />
+        </div>
+    );
+}

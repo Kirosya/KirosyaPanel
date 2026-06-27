@@ -1,0 +1,121 @@
+
+        /* Modals and Animations */
+        .modal {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            transform: scale(0.95);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+        
+        /* Custom Scrollbar for Modal */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d1d5db; 
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af; 
+        }
+
+        /* Fade-in Animation Classes */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Fun Lokanta Theme Classes */
+        .lokanta-card {
+            background-color: white;
+            border: 2px solid #b91c1c;
+            border-radius: 1.25rem;
+            box-shadow: 4px 4px 0px 0px #f59e0b;
+            transition: all 0.2s ease-in-out;
+        }
+        .lokanta-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px #f59e0b;
+        }
+        
+        .lokanta-btn {
+            background-color: #f59e0b;
+            color: #7f1d1d;
+            border: 2px solid #b91c1c;
+            box-shadow: 3px 3px 0px 0px #b91c1c;
+            transition: all 0.2s ease-in-out;
+        }
+        .lokanta-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px 0px #b91c1c;
+        }
+
+        .lokanta-btn-white {
+            background-color: white;
+            color: #b91c1c;
+            border: 2px solid #b91c1c;
+            box-shadow: 3px 3px 0px 0px #f59e0b;
+            transition: all 0.2s ease-in-out;
+        }
+        .lokanta-btn-white:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px 0px #f59e0b;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .lokanta-card {
+                border-radius: 1rem;
+                box-shadow: 3px 3px 0px 0px #f59e0b;
+            }
+            .lokanta-btn, .lokanta-btn-white {
+                box-shadow: 3px 3px 0px 0px #b91c1c;
+            }
+        }
+
+        /* Hero Background with playful pattern */
+        .hero-bg {
+            background-color: #dc2626;
+            background-image: radial-gradient(circle at center, #ef4444 0%, #b91c1c 100%);
+            position: relative;
+        }
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2v-2h2v2h2v-2h2v2h-2v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h2v2H22V20.5H20z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+
+        /* Animated Stripes for Ev Yapımı Harç Button */
+        .bg-stripes {
+            background-image: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent);
+            background-size: 2rem 2rem;
+        }
+        .animate-stripes {
+            animation: stripes 1s linear infinite;
+        }
+        @keyframes stripes {
+            from { background-position: 2rem 0; }
+            to { background-position: 0 0; }
+        }
+    

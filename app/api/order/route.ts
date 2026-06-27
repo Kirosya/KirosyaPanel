@@ -25,6 +25,7 @@ export async function POST(request: Request) {
         if (!db.pendingOrders) db.pendingOrders = [];
         
         db.tables[tableId].orders.push(newOrder);
+        db.tables[tableId].lastActivity = Date.now();
         db.pendingOrders.push(newOrder);
 
         await redis.set('aspava:tables', db);

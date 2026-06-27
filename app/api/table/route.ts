@@ -1,6 +1,6 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
-import { redis } from '@/lib/redis';
+import { redis, cleanInactiveTables } from '@/lib/redis';
 
 function generateUUID() {
     return Math.random().toString(36).substr(2, 9) + Math.floor(Date.now() / 3).toString(36);
@@ -13,8 +13,10 @@ export async function POST(request: Request) {
         
         if (!db || !db.tables) {
             db = { tables: {} };
-            for(let i=1; i<=10; i++) db.tables[i.toString()] = { sessionId: null, orders: [] };
+            for(let i=1; i<=10; i++) db.tables[i.toString()] = { sessionId: null, orders: [], lastActivity: null };
         }
+        
+        let dbChanged = cleanInactiveTables(db);
 
         if (!tableId) {
             const targetSession = urlSessionId || sessionId;
@@ -29,6 +31,7 @@ export async function POST(request: Request) {
                 }
             }
             if (foundTableId) {
+                if (dbChanged) await redis.set('aspava:tables', db);
                 return NextResponse.json({ 
                     success: true, 
                     tableId: foundTableId,
@@ -49,6 +52,7 @@ export async function POST(request: Request) {
             const newSession = generateUUID();
             db.tables[tableId].sessionId = newSession;
             db.tables[tableId].orders = [];
+            db.tables[tableId].lastActivity = Date.now();
             await redis.set('aspava:tables', db);
             return NextResponse.json({ success: true, tableId, joinedSessionId: newSession, orders: [] });
         }
@@ -56,14 +60,17 @@ export async function POST(request: Request) {
         // Eğer masa doluysa ve gelen kişinin çerezi (cookie) eşleşiyorsa VEYA url'deki (s) parametresi eşleşiyorsa:
         // Konum gerekmez, zaten içeride
         if (db.tables[tableId].sessionId === sessionId || (urlSessionId && db.tables[tableId].sessionId === urlSessionId)) {
+            if (dbChanged) await redis.set('aspava:tables', db);
             return NextResponse.json({ success: true, tableId, joinedSessionId: db.tables[tableId].sessionId, orders: db.tables[tableId].orders });
         }
 
         // Eğer masa doluysa ama gelen kişinin çerezi farklıysa/yoksa (Masaya sonradan dahil olan kişi)
         if (locationVerified) {
             // Konum doğrulandıysa girişine izin ver
+            if (dbChanged) await redis.set('aspava:tables', db);
             return NextResponse.json({ success: true, tableId, joinedSessionId: db.tables[tableId].sessionId, orders: db.tables[tableId].orders });
         } else {
+            if (dbChanged) await redis.set('aspava:tables', db);
             // Konum doğrulanmadıysa, frontend'den konum iste
             return NextResponse.json({ requireLocation: true });
         }

@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { redis } from '@/lib/redis';
+import { redis, cleanInactiveTables } from '@/lib/redis';
 
 export async function GET() {
     const cookieStore = await cookies();
@@ -12,6 +12,11 @@ export async function GET() {
         let db: any = await redis.get('aspava:tables');
         if (!db) db = { tables: {}, pendingOrders: [] };
         if (!db.pendingOrders) db.pendingOrders = [];
+        
+        if (cleanInactiveTables(db)) {
+            await redis.set('aspava:tables', db);
+        }
+        
         return NextResponse.json(db);
     } catch (error) {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });

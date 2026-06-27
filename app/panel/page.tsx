@@ -82,6 +82,39 @@ export default function Panel() {
         setMenuData(newData);
     };
 
+    const handleAddCategory = () => {
+        const title = prompt('Yeni kategori adı (Örn: İçecekler):');
+        if (!title) return;
+        const key = title.toLowerCase().replace(/[^a-z0-9ğüşöçi]/g, '');
+        if (menuData[key]) return alert('Bu kategori anahtarı zaten kullanılıyor!');
+        setMenuData({ ...menuData, [key]: { title, items: [] } });
+    };
+
+    const handleAddItem = (categoryKey: string) => {
+        const name = prompt('Yemek adı:');
+        if (!name) return;
+        const desc = prompt('Açıklaması (İsteğe bağlı):');
+        const price = prompt('Fiyat (İsteğe bağlı):');
+        
+        const newData = { ...menuData };
+        newData[categoryKey].items.push({ name, desc: desc || '', price: price || '' });
+        setMenuData(newData);
+    };
+
+    const handleDeleteItem = (categoryKey: string, itemIndex: number) => {
+        if (!confirm('Bu yemeği silmek istediğinize emin misiniz?')) return;
+        const newData = { ...menuData };
+        newData[categoryKey].items.splice(itemIndex, 1);
+        setMenuData(newData);
+    };
+
+    const handleDeleteCategory = (categoryKey: string) => {
+        if (!confirm('Tüm kategoriyi ve içindeki yemekleri silmek istediğinize emin misiniz?')) return;
+        const newData = { ...menuData };
+        delete newData[categoryKey];
+        setMenuData(newData);
+    };
+
     const handleSaveMenu = async () => {
         setSaving(true);
         setMessage('');
@@ -169,34 +202,45 @@ export default function Panel() {
                                 {message}
                             </div>
                         )}
-                        <div className="flex justify-end mb-4">
-                            <button onClick={handleSaveMenu} disabled={saving} className="bg-brand-red text-white font-bold py-2 px-6 rounded-lg">
-                                {saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+                        <div className="flex justify-between items-center mb-4">
+                            <button onClick={handleAddCategory} className="bg-gray-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-900 transition-colors">
+                                + Yeni Kategori Ekle
+                            </button>
+                            <button onClick={handleSaveMenu} disabled={saving} className="bg-brand-red text-white font-bold py-2 px-6 rounded-lg hover:bg-brand-dark transition-colors">
+                                {saving ? 'Kaydediliyor...' : 'Tüm Değişiklikleri Kaydet'}
                             </button>
                         </div>
                         {Object.keys(menuData).map((categoryKey) => {
                             const category = menuData[categoryKey];
                             return (
-                                <div key={categoryKey} className="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                                <div key={categoryKey} className="bg-gray-50 p-6 rounded-xl border border-gray-200 relative">
+                                    <button onClick={() => handleDeleteCategory(categoryKey)} className="absolute top-4 right-4 text-red-500 hover:text-red-700 font-bold text-sm">
+                                        Kategoriyi Sil
+                                    </button>
                                     <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">{category.title}</h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                         {category.items.map((item: any, index: number) => (
-                                            <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                                            <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100 relative group">
                                                 <div className="flex-1 pr-4">
                                                     <h3 className="font-bold text-gray-900">{item.name}</h3>
+                                                    <p className="text-xs text-gray-500 line-clamp-1">{item.desc}</p>
                                                 </div>
-                                                <div className="w-32 flex items-center relative">
+                                                <div className="w-28 flex items-center gap-2">
                                                     <input 
                                                         type="number" 
                                                         value={item.price || ''}
                                                         onChange={(e) => handlePriceChange(categoryKey, index, e.target.value)}
-                                                        placeholder="0.00"
-                                                        className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 font-bold"
+                                                        placeholder="Fiyat"
+                                                        className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2 text-sm font-bold"
                                                     />
+                                                    <button onClick={() => handleDeleteItem(categoryKey, index)} className="text-red-400 hover:text-red-600 text-xl font-bold" title="Sil">×</button>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
+                                    <button onClick={() => handleAddItem(categoryKey)} className="w-full border-2 border-dashed border-gray-300 text-gray-500 font-bold py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                        + Bu Kategoriye Yeni Yemek Ekle
+                                    </button>
                                 </div>
                             );
                         })}

@@ -95,7 +95,7 @@ export default function Panel() {
     };
 
     const handleAddCategory = () => {
-        const title = prompt('Yeni kategori adı (Örn: İçecekler):');
+        const title = prompt('Yeni kategori adı (Örn: İçecekler)');
         if (!title) return;
         const key = title.toLowerCase().replace(/[^a-z0-9ğüşöçi]/g, '');
         if (menuData[key]) return alert('Bu kategori anahtarı zaten kullanılıyor!');
@@ -103,10 +103,10 @@ export default function Panel() {
     };
 
     const handleAddItem = (categoryKey: string) => {
-        const name = prompt('Yemek adı:');
+        const name = prompt('Yemek adı');
         if (!name) return;
-        const desc = prompt('Açıklaması (İsteğe bağlı):');
-        const price = prompt('Fiyat (İsteğe bağlı):');
+        const desc = prompt('Açıklaması (İsteğe bağlı)');
+        const price = prompt('Fiyat (İsteğe bağlı)');
         
         const newData = { ...menuData };
         newData[categoryKey].items.push({ name, desc: desc || '', price: price || '' });

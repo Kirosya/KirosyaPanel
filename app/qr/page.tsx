@@ -180,9 +180,17 @@ export default function QRMenu() {
                 {/* Siparişlerim */}
                 {myOrders.length > 0 && (
                     <section className="bg-white border-2 border-brand-red rounded-2xl p-4 shadow-sm mb-8">
-                        <div className="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
-                            <i className="fa-solid fa-receipt text-brand-red text-xl"></i>
-                            <h2 className="text-xl font-black text-gray-900 tracking-tight">Siparişlerim & Durumları</h2>
+                        <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
+                            <div className="flex items-center gap-3">
+                                <i className="fa-solid fa-receipt text-brand-red text-xl"></i>
+                                <h2 className="text-xl font-black text-gray-900 tracking-tight">Siparişlerim & Durumları</h2>
+                            </div>
+                            <div className="text-brand-red font-black text-lg bg-red-50 px-3 py-1 rounded-lg">
+                                ₺{myOrders.reduce((total, order) => {
+                                    if (order.status === 'iptal') return total;
+                                    return total + order.items.reduce((sum: number, item: any) => sum + ((item.price || 0) * item.qty), 0);
+                                }, 0).toFixed(2)}
+                            </div>
                         </div>
                         <div className="space-y-4">
                             {myOrders.map((order, idx) => (

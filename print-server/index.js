@@ -34,7 +34,7 @@ app.post('/print', (req, res) => {
         // Header
         doc.font('Helvetica-Bold')
            .fontSize(16)
-           .text('ASPAVA RESTORAN', { align: 'center' });
+           .text('SB ASPAVA', { align: 'center' });
         
         doc.moveDown(0.5);
         doc.fontSize(12).text('--------------------------------', { align: 'center' });
@@ -65,15 +65,12 @@ app.post('/print', (req, res) => {
         });
 
         doc.moveDown(0.5);
-        doc.font('Helvetica-Bold').fontSize(12).text('--------------------------------', { align: 'center' });
-        doc.moveDown(0.5);
 
         // Total
         doc.fontSize(14).text('TOPLAM:', { continued: true });
         doc.text(`${total} TL`, { align: 'right' });
 
         doc.moveDown(2);
-        doc.font('Helvetica').fontSize(10).text('Afiyet Olsun!', { align: 'center' });
         doc.text(new Date().toLocaleString('tr-TR'), { align: 'center' });
 
         doc.end();

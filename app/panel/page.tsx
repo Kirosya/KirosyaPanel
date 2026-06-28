@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { io } from 'socket.io-client';
-
+import Pusher from 'pusher-js';
 export default function Panel() {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [password, setPassword] = useState('');
@@ -132,7 +131,6 @@ export default function Panel() {
             fetchAdminData();
             
             // Pusher WebSocket Entegrasyonu
-            const Pusher = require('pusher-js');
             const pusher = new Pusher('02d39ab666eca7e30f1c', {
                 cluster: 'eu'
             });

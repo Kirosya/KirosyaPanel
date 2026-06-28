@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { redis } from '@/lib/redis';
-
+import Pusher from 'pusher';
 
 export async function POST(request: Request) {
     try {
@@ -32,7 +32,6 @@ export async function POST(request: Request) {
 
         // Trigger real-time push to admin panel
         try {
-            const Pusher = require('pusher');
             const pusher = new Pusher({
                 appId: "2171329",
                 key: "02d39ab666eca7e30f1c",

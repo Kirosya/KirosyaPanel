@@ -534,6 +534,7 @@ export default function Panel() {
                                     placeholder="Ürün ara..." 
                                     value={adminSearchQuery}
                                     onChange={(e) => setAdminSearchQuery(e.target.value)}
+                                    autoFocus
                                     className="w-full bg-gray-100 border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-brand-red text-gray-800 font-medium outline-none transition-all"
                                 />
                             </div>

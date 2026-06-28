@@ -140,33 +140,49 @@ export default function Panel() {
 
             const channel = pusher.subscribe('admin-channel');
             channel.bind('new-order', function(data: any) {
+                // Her sipariş geldiğinde sesi çal
+                const vol = parseFloat(localStorage.getItem('volume') || '1');
+                if (vol > 0) {
+                    const el = document.getElementById('notificationSound') as HTMLAudioElement;
+                    if (el) {
+                        el.volume = vol;
+                        el.currentTime = 0;
+                        el.play().catch(()=>{});
+                    }
+                }
+
                 fetch('/api/admin')
                     .then(res => res.json())
                     .then(db => {
                         setAdminData(db);
                         if (db.settings?.autoApprove) {
-                            if (data && data.tableId && data.items) {
-                                fetch('http://localhost:8181/print', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ tableId: data.tableId, items: data.items, orderId: data.orderId })
-                                }).catch(() => {});
-                            } else if (data && data.orderId) {
+                            const orderId = data?.orderId;
+                            if (orderId) {
+                                // Bul ve yazdır
                                 let order;
                                 for (const tId in db.tables) {
-                                    const o = db.tables[tId].orders.find((o: any) => o.id === data.orderId);
+                                    const o = db.tables[tId].orders.find((o: any) => o.id === orderId);
                                     if (o) { order = o; break; }
                                 }
                                 if (!order && db.pendingOrders) {
-                                    order = db.pendingOrders.find((o: any) => o.id === data.orderId);
+                                    order = db.pendingOrders.find((o: any) => o.id === orderId);
                                 }
+                                
                                 if (order) {
+                                    // Fiş yazdır
                                     fetch('http://localhost:8181/print', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({ tableId: order.tableId, items: order.items, orderId: order.id })
                                     }).catch(() => {});
                                 }
+
+                                // Frontend üzerinden zorla onayla (Canlı sunucu main'de kaldığı için)
+                                fetch('/api/admin', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ action: 'approve_order', orderId: orderId })
+                                }).then(() => fetchAdminData());
                             }
                         }
                     });

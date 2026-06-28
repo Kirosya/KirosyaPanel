@@ -14,9 +14,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Yetkisiz erişim veya masa kapanmış' }, { status: 403 });
         }
 
+        if (typeof db.orderCounter !== 'number') db.orderCounter = 0;
+        db.orderCounter++;
+
         const isAutoApprove = db.settings?.autoApprove === true;
         const newOrder = {
-            id: Date.now().toString(),
+            id: db.orderCounter.toString(),
             tableId,
             items,
             status: isAutoApprove ? 'onaylandi' : 'bekliyor', // bekliyor, onaylandi, iptal

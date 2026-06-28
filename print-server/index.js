@@ -13,6 +13,16 @@ if (!fs.existsSync(receiptsDir)) {
     fs.mkdirSync(receiptsDir);
 }
 
+const replaceTrChars = (text) => {
+    if (!text) return text;
+    return text.replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
+               .replace(/ü/g, 'u').replace(/Ü/g, 'U')
+               .replace(/ş/g, 's').replace(/Ş/g, 'S')
+               .replace(/ı/g, 'i').replace(/İ/g, 'I')
+               .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+               .replace(/ç/g, 'c').replace(/Ç/g, 'C');
+};
+
 app.post('/print', (req, res) => {
     try {
         const { tableId, items, orderId } = req.body;
@@ -20,7 +30,7 @@ app.post('/print', (req, res) => {
             return res.status(400).json({ error: 'Missing tableId or items' });
         }
 
-        const fileName = `fis_masa_${tableId}_${Date.now()}.pdf`;
+        const fileName = `fis_masa_${tableId}_siparis_${orderId || Date.now()}.pdf`;
         const filePath = path.join(receiptsDir, fileName);
 
         // 80mm thermal paper width is approximately 226 points.
@@ -42,7 +52,7 @@ app.post('/print', (req, res) => {
         // Table Info
         doc.fontSize(14).text(`Masa: ${tableId}`, { align: 'center' });
         if (orderId) {
-            doc.fontSize(10).font('Helvetica').text(`Siparis No: ${orderId.slice(-6)}`, { align: 'center' });
+            doc.fontSize(10).font('Helvetica').text(`Siparis No: ${orderId}`, { align: 'center' });
         }
         
         doc.moveDown(0.5);
@@ -58,7 +68,7 @@ app.post('/print', (req, res) => {
             total += itemTotal;
             
             // Format: Qty x Name
-            doc.text(`${item.qty}x ${item.name}`, { continued: true });
+            doc.text(`${item.qty}x ${replaceTrChars(item.name)}`, { continued: true });
             // Format: Price (right aligned)
             doc.text(`${itemTotal} TL`, { align: 'right' });
             doc.moveDown(0.2);

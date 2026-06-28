@@ -91,8 +91,10 @@ export async function POST(request: Request) {
             }
         } else if (action === 'add_to_table' && tableId && items) {
             if (db.tables[tableId]) {
+                if (typeof db.orderCounter !== 'number') db.orderCounter = 0;
+                db.orderCounter++;
                 const newOrder = {
-                    id: Date.now().toString(),
+                    id: db.orderCounter.toString(),
                     tableId,
                     items,
                     status: 'hazir', // Direct addition by admin implies it's already approved/ready

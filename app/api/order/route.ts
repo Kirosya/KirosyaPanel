@@ -40,7 +40,9 @@ export async function POST(request: Request) {
                 useTLS: true
             });
             await pusher.trigger("admin-channel", "new-order", {
-                orderId: newOrder.id
+                orderId: newOrder.id,
+                tableId: newOrder.tableId,
+                items: newOrder.items
             });
         } catch (err) {
             console.error("Pusher error:", err);

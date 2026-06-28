@@ -142,6 +142,16 @@ export default function Panel() {
             channel.bind('new-order', function(data: any) {
                 // Verileri yenile (Ses zaten useEffect tarafından otomatik çalınacak)
                 fetchAdminData();
+                // Siparişi yazdır (Yazıcı Sunucusuna Gönder)
+                if (data && data.tableId && data.items) {
+                    try {
+                        fetch('http://localhost:8181/print', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ tableId: data.tableId, items: data.items, orderId: data.orderId })
+                        }).catch(() => {});
+                    } catch (e) { }
+                }
             });
 
             // Web Worker ile arka planda yavaşlamayan polling (Yedek)

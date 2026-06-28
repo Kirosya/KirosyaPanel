@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { redis } from '@/lib/redis';
-import Pusher from 'pusher';
+
 
 export async function POST(request: Request) {
     try {
@@ -30,20 +30,18 @@ export async function POST(request: Request) {
 
         await redis.set('aspava:tables', db);
 
-        // Trigger real-time push to admin panel
+        // Trigger real-time push to admin panel via Local Webhook
         try {
-            const pusher = new Pusher({
-                appId: "2171329",
-                key: "02d39ab666eca7e30f1c",
-                secret: "f101cb1063445ab39be8",
-                cluster: "eu",
-                useTLS: true
-            });
-            await pusher.trigger("admin-channel", "new-order", {
-                orderId: newOrder.id
+            await fetch('http://127.0.0.1:3001/webhook', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    event: 'new-order',
+                    data: { orderId: newOrder.id }
+                })
             });
         } catch (err) {
-            console.error("Pusher error:", err);
+            console.error("Webhook error:", err);
         }
 
         return NextResponse.json({ success: true, orderId: newOrder.id });

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Pusher from 'pusher-js';
+import { io } from 'socket.io-client';
 
 export default function Panel() {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -129,13 +129,11 @@ export default function Panel() {
             fetchMenu();
             fetchAdminData();
             
-            // Pusher WebSocket Entegrasyonu
-            const pusher = new Pusher('02d39ab666eca7e30f1c', {
-                cluster: 'eu'
-            });
+            // Local WebSocket (Socket.io) Entegrasyonu
+            const socket = io('http://127.0.0.1:3001');
 
-            const channel = pusher.subscribe('admin-channel');
-            channel.bind('new-order', function(data: any) {
+            socket.on('new-order', function(data: any) {
+                console.log("Yeni sipariş bildirimi alındı:", data);
                 // Verileri yenile (Ses zaten useEffect tarafından otomatik çalınacak)
                 fetchAdminData();
             });
@@ -157,7 +155,7 @@ export default function Panel() {
                 setVolume(parseFloat(localStorage.getItem('volume')!));
             }
             return () => {
-                pusher.unsubscribe('admin-channel');
+                socket.disconnect();
                 worker.postMessage('stop');
                 worker.terminate();
             };

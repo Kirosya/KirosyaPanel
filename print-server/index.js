@@ -53,7 +53,7 @@ app.post('/print', (req, res) => {
         // Header
         doc.font('Helvetica-Bold')
            .fontSize(16)
-           .text('SB ASPAVA', { align: 'center' });
+           .text('DEMO RESTORAN', { align: 'center' });
         
         doc.moveDown(0.5);
         doc.fontSize(12).text('--------------------------------', { align: 'center' });
@@ -106,7 +106,7 @@ const PORT = 8181;
 app.listen(PORT, () => {
     console.log(`
 =========================================
- ASPAVA LOKAL YAZDIRMA SUNUCUSU ÇALIŞIYOR
+ KIROSYA LOKAL YAZDIRMA SUNUCUSU ÇALIŞIYOR
 =========================================
 Port: ${PORT}
 Fişlerin kaydedileceği klasör: ${receiptsDir}

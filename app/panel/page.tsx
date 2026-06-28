@@ -90,9 +90,9 @@ export default function Panel() {
             const currentPending = adminData.pendingOrders?.filter((o:any) => o.status === 'bekliyor') || [];
             const pendingCount = currentPending.length;
             if (pendingCount > 0) {
-                document.title = `(${pendingCount}) Yeni Sipariş! - Aspava`;
+                document.title = `(${pendingCount}) Yeni Sipariş! - Kirosya`;
             } else {
-                document.title = 'SB Aspava Panel';
+                document.title = 'Kirosya Panel';
             }
             
             prevOrdersRef.current = new Set(allOrders.map((o:any) => o.id));
@@ -290,7 +290,7 @@ export default function Panel() {
             <div className="min-h-screen bg-brand-light flex items-center justify-center p-4">
                 <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-t-4 border-brand-red">
                     <a href="/" className="inline-block hover:scale-105 transition-transform">
-                        <h1 className="text-4xl font-logo text-center text-brand-red mb-6 tracking-wide" style={{ textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 2px 2px 0 #000', letterSpacing: '1px' }}>SB Aspava Panel</h1>
+                        <h1 className="text-4xl font-logo text-center text-brand-red mb-6 tracking-wide" style={{ textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 2px 2px 0 #000', letterSpacing: '1px' }}>Kirosya Panel</h1>
                     </a>
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div>
@@ -321,7 +321,7 @@ export default function Panel() {
                 
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-8 border-b pb-4 gap-4 panel-header">
                     <a href="/" className="inline-block hover:scale-105 transition-transform">
-                        <h1 className="text-3xl sm:text-4xl font-logo text-brand-red tracking-wide" style={{ textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 2px 2px 0 #000', letterSpacing: '1px' }}>SB Aspava Panel</h1>
+                        <h1 className="text-3xl sm:text-4xl font-logo text-brand-red tracking-wide" style={{ textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 2px 2px 0 #000', letterSpacing: '1px' }}>Kirosya Panel</h1>
                     </a>
                     <div className="flex gap-4 items-center flex-wrap justify-center">
                         <div className="flex bg-gray-100 p-1 rounded-lg panel-tabs">

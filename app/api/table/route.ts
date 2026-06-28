@@ -9,7 +9,7 @@ function generateUUID() {
 export async function POST(request: Request) {
     try {
         const { tableId, sessionId, urlSessionId, locationVerified, pinCode } = await request.json();
-        let db: any = await redis.get('aspava:tables');
+        let db: any = await redis.get('demo:tables');
         
         if (!db || !db.tables) {
             db = { tables: {} };
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
         if (!tableId) {
             const targetSession = urlSessionId || sessionId;
             if (!targetSession) {
-                if (dbChanged) await redis.set('aspava:tables', db);
+                if (dbChanged) await redis.set('demo:tables', db);
                 return NextResponse.json({ error: 'Geçersiz oturum.' }, { status: 400 });
             }
             let foundTableId = null;
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
             if (foundTableId) {
                 // Eğer kişinin cookie'si session ile aynıysa (zaten önceden doğrulanmış sahibi)
                 if (sessionId === targetSession) {
-                    if (dbChanged) await redis.set('aspava:tables', db);
+                    if (dbChanged) await redis.set('demo:tables', db);
                     return NextResponse.json({ 
                         success: true, 
                         tableId: foundTableId,
@@ -45,16 +45,16 @@ export async function POST(request: Request) {
                 }
                 
                 // Eğer kişi linkten geliyorsa ve sahibi değilse (Sadece İnceleme modu)
-                if (dbChanged) await redis.set('aspava:tables', db);
+                if (dbChanged) await redis.set('demo:tables', db);
                 return NextResponse.json({ success: true, tableId: foundTableId, orders: db.tables[foundTableId].orders, isOwner: false });
             } else {
-                if (dbChanged) await redis.set('aspava:tables', db);
+                if (dbChanged) await redis.set('demo:tables', db);
                 return NextResponse.json({ error: 'Bu oturum kapatılmış veya geçersiz.' }, { status: 404 });
             }
         }
 
         if (!db.tables[tableId]) {
-            if (dbChanged) await redis.set('aspava:tables', db);
+            if (dbChanged) await redis.set('demo:tables', db);
             return NextResponse.json({ error: 'Masa bulunamadı' }, { status: 404 });
         }
 
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
             db.tables[tableId].sessionId = newSession;
             db.tables[tableId].orders = [];
             db.tables[tableId].lastActivity = Date.now();
-            await redis.set('aspava:tables', db);
+            await redis.set('demo:tables', db);
             
             // Masaya ilk giris yapildi, admini bilgilendir
             try {
@@ -83,12 +83,12 @@ export async function POST(request: Request) {
 
         // Eğer masa doluysa ve gelen kişinin çerezi (cookie) eşleşiyorsa (Masa sahibi)
         if (db.tables[tableId].sessionId === sessionId) {
-            if (dbChanged) await redis.set('aspava:tables', db);
+            if (dbChanged) await redis.set('demo:tables', db);
             return NextResponse.json({ success: true, tableId, joinedSessionId: db.tables[tableId].sessionId, orders: db.tables[tableId].orders, isOwner: true });
         }
 
         // Eğer masa doluysa ama gelen kişinin çerezi farklıysa/yoksa (Sadece inceleme modu)
-        if (dbChanged) await redis.set('aspava:tables', db);
+        if (dbChanged) await redis.set('demo:tables', db);
         return NextResponse.json({ success: true, tableId, orders: db.tables[tableId].orders, isOwner: false });
 
     } catch (error) {

@@ -9,13 +9,13 @@ export async function GET() {
     if (!auth || auth.value !== 'true') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {
-        let db: any = await redis.get('aspava:tables');
+        let db: any = await redis.get('demo:tables');
         if (!db) db = { tables: {}, pendingOrders: [], settings: { autoApprove: false } };
         if (!db.pendingOrders) db.pendingOrders = [];
         if (!db.settings) db.settings = { autoApprove: false };
         
         if (cleanInactiveTables(db)) {
-            await redis.set('aspava:tables', db);
+            await redis.set('demo:tables', db);
         }
         
         return NextResponse.json(db);
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
     try {
         const { action, tableId, orderId, status, fromTableId, toTableId, items, settings } = await request.json();
-        let db: any = await redis.get('aspava:tables');
+        let db: any = await redis.get('demo:tables');
         if (!db) return NextResponse.json({ error: 'DB error' }, { status: 500 });
         if (!db.pendingOrders) db.pendingOrders = [];
         if (!db.settings) db.settings = { autoApprove: false };
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
             db.settings = { ...db.settings, ...settings };
         }
 
-        await redis.set('aspava:tables', db);
+        await redis.set('demo:tables', db);
 
         // Notify clients about table updates via Pusher
         if (action !== 'update_settings') {

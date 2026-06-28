@@ -7,11 +7,11 @@ export async function GET() {
     try {
         const menuPath = path.join(process.cwd(), 'data', 'menu.json');
         const menuData = JSON.parse(fs.readFileSync(menuPath, 'utf8'));
-        await redis.set('aspava:menu', menuData);
+        await redis.set('demo:menu', menuData);
 
         const tablesPath = path.join(process.cwd(), 'data', 'tables.json');
         const tablesData = JSON.parse(fs.readFileSync(tablesPath, 'utf8'));
-        await redis.set('aspava:tables', tablesData);
+        await redis.set('demo:tables', tablesData);
 
         return NextResponse.json({ success: true, message: 'Veriler başarıyla Redis e aktarıldı!' });
     } catch (error: any) {

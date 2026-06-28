@@ -107,7 +107,7 @@ app.on('ready', () => {
 
             doc.font('Helvetica-Bold')
                .fontSize(16)
-               .text('SB ASPAVA', { align: 'center' });
+               .text('DEMO RESTORAN', { align: 'center' });
             
             doc.moveDown(0.5);
             doc.fontSize(12).text('--------------------------------', { align: 'center' });

@@ -5,7 +5,7 @@ import Pusher from 'pusher';
 export async function POST(request: Request) {
     try {
         const { tableId, sessionId, items } = await request.json();
-        const db: any = await redis.get('aspava:tables');
+        const db: any = await redis.get('demo:tables');
         
         if (!db || !db.tables) return NextResponse.json({ error: 'DB error' }, { status: 500 });
 
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
             db.pendingOrders.push(newOrder);
         }
 
-        await redis.set('aspava:tables', db);
+        await redis.set('demo:tables', db);
 
         // Trigger real-time push to admin panel
         try {

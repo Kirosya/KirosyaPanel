@@ -5,20 +5,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>SB Aspava | Efsane Lezzetler</title>
-        <meta name="description" content="Ankara Türkkonut'ta odun ateşinde efsane lezzetler. SB Aspava ile nefis kebaplar, pideler ve lahmacunlar için hemen sipariş verin." />
-        <meta name="keywords" content="SB Aspava, Aspava, Ankara Aspava, Türkkonut Aspava, Ankara kebap, Ankara pide, lahmacun, odun ateşi, yemek siparişi, yemeksepeti, trendyol, ubereats, menu, menü" />
-        <meta name="author" content="SB Aspava" />
+        <title>Kirosya Panel | Restoran Yönetimi</title>
+        <meta name="description" content="Kirosya restoran yönetimi ve QR menü paneli demosu." />
+        <meta name="keywords" content="Kirosya, restoran panel, qr menü, sipariş sistemi, demo" />
+        <meta name="author" content="Kirosya Panel" />
         <meta name="robots" content="index, follow" />
-        <meta property="og:title" content="SB Aspava | Efsane Lezzetler" />
-        <meta property="og:description" content="Ankara Türkkonut'ta odun ateşinde efsane lezzetler. SB Aspava ile nefis kebaplar, pideler ve lahmacunlar için hemen sipariş verin." />
+        <meta property="og:title" content="Kirosya Panel | Restoran Yönetimi" />
+        <meta property="og:description" content="Kirosya restoran yönetimi ve QR menü paneli demosu." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://sbaspava.com" />
+        <meta property="og:url" content="https://kirosya.com" />
         <meta property="og:image" content="/favicon.png" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="SB Aspava | Efsane Lezzetler" />
-        <meta name="twitter:description" content="Ankara Türkkonut'ta odun ateşinde efsane lezzetler. SB Aspava ile nefis kebaplar, pideler ve lahmacunlar için hemen sipariş verin." />
-        <link rel="canonical" href="https://sbaspava.com" />
+        <meta name="twitter:title" content="Kirosya Panel | Restoran Yönetimi" />
+        <meta name="twitter:description" content="Kirosya restoran yönetimi ve QR menü paneli demosu." />
+        <link rel="canonical" href="https://kirosya.com" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/favicon.png" />

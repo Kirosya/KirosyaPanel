@@ -4,7 +4,7 @@ import { redis } from '@/lib/redis';
 
 export async function GET() {
     try {
-        let menuData = await redis.get('aspava:menu');
+        let menuData = await redis.get('demo:menu');
         if (!menuData) menuData = {}; // Varsayılan boş veya seed data kullanabiliriz
         return NextResponse.json(menuData);
     } catch (error) {
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     try {
         const newMenuData = await request.json();
-        await redis.set('aspava:menu', newMenuData);
+        await redis.set('demo:menu', newMenuData);
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to write menu data' }, { status: 500 });

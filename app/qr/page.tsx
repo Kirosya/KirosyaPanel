@@ -40,7 +40,7 @@ export default function QRMenu() {
                     // Masayı ilk açan kişi
                     setIsReadOnly(false);
                     // Set cookie for 12 hours
-                    document.cookie = `aspava_session=${data.joinedSessionId}; max-age=${12 * 60 * 60}; path=/`;
+                    document.cookie = `kirosya_session=${data.joinedSessionId}; max-age=${12 * 60 * 60}; path=/`;
                     setSessionId(data.joinedSessionId);
                     
                     // Update URL to /qr?s=joinedSessionId (Masa querysini kaldırıyoruz)
@@ -94,7 +94,7 @@ export default function QRMenu() {
             if (parts.length === 2) return parts.pop()?.split(';').shift();
             return null;
         };
-        const localSession = getCookie('aspava_session');
+        const localSession = getCookie('kirosya_session');
 
         // İlk yükleme (masa varsa masa id'si ile, yoksa null göndererek sadece session id ile kontrol et)
         checkTableSession(t || null, localSession, s);
@@ -107,7 +107,7 @@ export default function QRMenu() {
         const channel = pusher.subscribe('qr-channel');
         channel.bind('update-table', function(data: any) {
             const currentT = new URLSearchParams(window.location.search).get('masa');
-            const currentS = new URLSearchParams(window.location.search).get('s') || getCookie('aspava_session');
+            const currentS = new URLSearchParams(window.location.search).get('s') || getCookie('kirosya_session');
             
             // Sadece bu masayla ilgili bir güncelleme ise tabloyu yenile
             if (data.tableId === (currentT || t || null) || data.sessionId === (currentS || localSession || null)) {
@@ -197,7 +197,7 @@ export default function QRMenu() {
                     <div className="flex-shrink-0 flex items-center">
                         <a href="/" className="inline-block hover:scale-105 transition-transform">
                             <h1 className="text-4xl font-logo text-brand-red tracking-wide drop-shadow-md" style={{ textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 2px 2px 0 #000' }}>
-                                 SB Aspava
+                                 Demo Restoran
                             </h1>
                         </a>
                     </div>

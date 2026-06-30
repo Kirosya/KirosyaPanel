@@ -292,7 +292,10 @@ export default function QRMenu() {
                                 {category.items.map((item: any, index: number) => (
                                     <div key={index} className="menu-item p-3 sm:p-4 flex justify-between items-center gap-4 hover:bg-gray-50 transition-colors rounded-xl border-b border-dashed border-gray-200 last:border-b-0">
                                         <div className="flex-1">
-                                            <h3 className="font-bold text-gray-900 text-lg">{item.name}</h3>
+                                            <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                                                {item.name}
+                                                {item.isPopular && <span title="Popüler" className="text-xl animate-pulse">🔥</span>}
+                                            </h3>
                                             {item.desc && <p className="text-sm text-gray-500 leading-tight mt-0.5">{item.desc}</p>}
                                         </div>
                                         {item.price && (

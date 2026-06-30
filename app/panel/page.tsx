@@ -439,7 +439,20 @@ export default function Panel() {
                                         {category.items.map((item: any, index: number) => (
                                             <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100 relative group">
                                                 <div className="flex-1 pr-4">
-                                                    <h3 className="font-bold text-gray-900">{item.name}</h3>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <h3 className="font-bold text-gray-900">{item.name}</h3>
+                                                        <button 
+                                                            onClick={() => {
+                                                                const newData = { ...menuData };
+                                                                newData[categoryKey].items[index].isPopular = !item.isPopular;
+                                                                setMenuData(newData);
+                                                            }}
+                                                            className={`text-lg transition-transform hover:scale-110 ${item.isPopular ? 'grayscale-0' : 'grayscale opacity-30 hover:opacity-100'}`}
+                                                            title="Popüler Olarak İşaretle/Kaldır"
+                                                        >
+                                                            🔥
+                                                        </button>
+                                                    </div>
                                                     <p className="text-xs text-gray-500 line-clamp-1">{item.desc}</p>
                                                 </div>
                                                 <div className="w-28 flex items-center gap-2">
